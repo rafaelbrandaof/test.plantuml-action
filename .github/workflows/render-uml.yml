@@ -3,6 +3,11 @@ on:
   push:
     paths:
       - "**.puml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "**.puml"
 
 jobs:
   plantuml:
