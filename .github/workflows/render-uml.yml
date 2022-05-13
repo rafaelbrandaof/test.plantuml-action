@@ -1,3 +1,14 @@
+name: Generate PlantUML Diagrams
+on:
+  push:
+    paths:
+      - "**.puml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "**.puml"
+
 jobs:
   plantuml:
     runs-on: ubuntu-latest
