@@ -1,22 +1,43 @@
 name: Generate PlantUML Diagrams
 on:
   push:
-    paths:
-      - "**.puml"
-  pull_request:
     branches:
-      - master
-    paths:
-      - "**.puml"
-
+      - main
 jobs:
   plantuml:
     runs-on: ubuntu-latest
+    env:
+        UML_FILES: ".puml"
     steps:
-      - name: Checkout Source
+      - name: Checkout Source 
         uses: actions/checkout@v2
-
-      - name: Generate SVG Diagrams
-        uses: holowinski/plantuml-github-action@main
         with:
-          args: -v -tsvg diagrams/*.puml
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v2
+        name:  "Get PUML files"
+        id: filter
+        with:
+          list-files: 'shell'
+          base: 'main'
+          filters: |
+            puml:
+            - '**.puml'
+      - name: Generate SVG Diagrams
+        uses: cloudbees/plantuml-github-action@master
+        if: steps.filter.outputs.puml == 'true'
+        with:
+            args: -v -tsvg ${{ steps.filter.outputs.puml_files }}
+      - name: Generate PNG Diagrams
+        uses: cloudbees/plantuml-github-action@master
+        if: steps.filter.outputs.puml == 'true'
+        with:
+            args: -v -tpng ${{ steps.filter.outputs.puml_files }}
+      - name: Push Local Changes
+        if: steps.filter.outputs.puml == 'true'
+        uses:  stefanzweifel/git-auto-commit-action@v4.1.2 
+        with: 
+          commit_user_name: "CI GitHub Action"
+          commit_user_email: "ci@mail.net"
+          commit_author: "CI GitHub Action <ci@mail.net>"
+          commit_message: "Generate SVG and PNG images for PlantUML diagrams" 
+          branch: ${{ github.head_ref }}
