@@ -1,43 +1,19 @@
-name: Generate PlantUML Diagrams
-on:
-  push:
-    branches:
-      - main
+name: generate plantuml
+on: push
 jobs:
-  plantuml:
+  generate_plantuml:
     runs-on: ubuntu-latest
-    env:
-        UML_FILES: ".puml"
+    name: plantuml
     steps:
-      - name: Checkout Source 
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: dorny/paths-filter@v2
-        name:  "Get PUML files"
-        id: filter
-        with:
-          list-files: 'shell'
-          base: 'main'
-          filters: |
-            puml:
-            - '**.puml'
-      - name: Generate SVG Diagrams
-        uses: cloudbees/plantuml-github-action@master
-        if: steps.filter.outputs.puml == 'true'
-        with:
-            args: -v -tsvg ${{ steps.filter.outputs.puml_files }}
-      - name: Generate PNG Diagrams
-        uses: cloudbees/plantuml-github-action@master
-        if: steps.filter.outputs.puml == 'true'
-        with:
-            args: -v -tpng ${{ steps.filter.outputs.puml_files }}
-      - name: Push Local Changes
-        if: steps.filter.outputs.puml == 'true'
-        uses:  stefanzweifel/git-auto-commit-action@v4.1.2 
-        with: 
-          commit_user_name: "CI GitHub Action"
-          commit_user_email: "ci@mail.net"
-          commit_author: "CI GitHub Action <ci@mail.net>"
-          commit_message: "Generate SVG and PNG images for PlantUML diagrams" 
-          branch: ${{ github.head_ref }}
+    - name: checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: plantuml
+      id: plantuml
+      uses: grassedge/generate-plantuml-action@v1.5
+      with:
+        path: example
+        message: "Render PlantUML files"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
